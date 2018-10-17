@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
     private LocationSettingsRequest mLocationSettingsRequest;
     private LocationCallback mLocationCallback;
     private Location mCurrentLocation;
-
+    private Integer reqCount = 15;
     // boolean flag to toggle the ui
     private Boolean mRequestingLocationUpdates;
     private String mLastUpdateTime;
@@ -91,7 +91,9 @@ public class MainActivity extends AppCompatActivity {
                 latitude = mCurrentLocation.getLatitude();
                 Log.d("Location", "Longitude = " + longitude.toString() + ", Latitude = " + latitude.toString());
                 Toast.makeText(MainActivity.this, "{" + longitude.toString() + "," + latitude.toString() + "}", Toast.LENGTH_SHORT).show();
-
+                if(isOnline) {
+                    startBackgroundService();
+                }
             }
         };
 
@@ -212,6 +214,11 @@ public class MainActivity extends AppCompatActivity {
         Log.d("Status","Offline.");
         mRequestingLocationUpdates = false;
         stopLocationUpdates();
+    }
+
+    public void startBackgroundService() {
+        Intent intent = new Intent(getApplicationContext() , RequestCount.class);
+        startService(intent);
     }
 
     public void sendDriverStatus() {

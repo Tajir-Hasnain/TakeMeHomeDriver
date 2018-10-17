@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Take Me Home-Driver</string>
+    <string name = "notificationText">"Hurry Up!!! 15 people are waiting for you."</string>
 </resources>
