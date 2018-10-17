@@ -19,8 +19,15 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -43,6 +50,9 @@ import com.karumi.dexter.listener.PermissionGrantedResponse;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.single.PermissionListener;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.text.DateFormat;
 import java.util.Date;
 
@@ -57,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
     private LocationSettingsRequest mLocationSettingsRequest;
     private LocationCallback mLocationCallback;
     private Location mCurrentLocation;
-    private Integer reqCount = 15;
+ //   private Integer reqCount = 15;
     // boolean flag to toggle the ui
     private Boolean mRequestingLocationUpdates;
     private String mLastUpdateTime;
@@ -66,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
     public Integer count = 0;
     public Double cuet_longitude , cuet_latitude;
     public Double MAX_DISTANCE = 2.0;
+    private String id;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +89,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void init() {
+
+
+        Intent intent = getIntent();
+        id = intent.getStringExtra("id");
+        Log.d("ID",id);
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         mSettingsClient = LocationServices.getSettingsClient(this);
@@ -125,6 +141,8 @@ public class MainActivity extends AppCompatActivity {
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
         builder.addLocationRequest(mLocationRequest);
         mLocationSettingsRequest = builder.build();
+
+        updateUI();
 
     }
 
@@ -232,6 +250,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d("Status","Offline.");
         mRequestingLocationUpdates = false;
         stopLocationUpdates();
+        stopBackgroundService();
     }
 
     public void startBackgroundService() {
@@ -269,4 +288,40 @@ public class MainActivity extends AppCompatActivity {
 
         return true;
     }
+    String reqCount = "0";
+    public void updateUI() {
+
+        //JSON
+        RequestQueue queue = Volley.newRequestQueue(this);
+        final TextView tv = findViewById(R.id.text);
+
+        String url = "http://6105b92d.ngrok.io/studentnumrequest";
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+                Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    reqCount = response.getString("count");
+                    tv.setText(reqCount+" "+getResources().getString(R.string.textViewText));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.v("Status","Json request failed");
+            }
+        });
+        queue.add(jsonObjectRequest);
+    }
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_HOME);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+    }
+
 }

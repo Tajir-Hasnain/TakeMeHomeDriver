@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Take Me Home-Driver</string>
-    <string name = "notificationText">"Hurry Up!!! 15 passengers are waiting for you."</string>
+    <string name="notificationText">"Hurry Up!!! 15 passengers are waiting for you."</string>
+    <string name="textViewText"> requests are currently pending</string>
 </resources>

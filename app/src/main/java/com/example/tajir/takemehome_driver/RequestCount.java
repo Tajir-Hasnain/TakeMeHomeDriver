@@ -13,6 +13,17 @@ import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
+import android.webkit.HttpAuthHandler;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class RequestCount extends Service {
 
@@ -46,7 +57,7 @@ public class RequestCount extends Service {
         if(intent.getStringExtra("status").equals("start")) {
             sendDriverStatus();
             Log.d("Status","Background Service started");
-            if (getCarCount() >= 15)
+            if (getReqCount() >= 15)
                 pushNotification();
         }
         else if(intent.getStringExtra("status").equals("stop"))
@@ -58,15 +69,41 @@ public class RequestCount extends Service {
     public void sendDriverStatus() {
         ;
     }
+    String reqCount = "0";
+    public Integer getReqCount() {
 
-    public Integer getCarCount() {
-        return 15;
+        //JSON
+
+        RequestQueue queue = Volley.newRequestQueue(this);
+
+        Log.d("Status","Getting Request Count from server");
+        String url = "http://6105b92d.ngrok.io/studentnumrequest";
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+                Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    reqCount = response.getString("count");
+                    Log.d("Request Count" , reqCount);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.v("Status","Json request failed");
+            }
+        });
+        queue.add(jsonObjectRequest);
+    //    Log.d("Request Count", reqCount);
+        return Integer.valueOf(reqCount);
     }
 
     public void pushNotification() {
         if(isServiceRunning)    return;
 
-        Log.d("Status","Request Count : " + getCarCount().toString() + ",Pushing Notification");
+        Log.d("Status","Request Count : " + getReqCount().toString() + ",Pushing Notification");
         isServiceRunning = true;
 
         Intent intent = new Intent(this, MainActivity.class);
