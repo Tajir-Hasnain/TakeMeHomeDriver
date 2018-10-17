@@ -62,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
     private Boolean mRequestingLocationUpdates;
     private String mLastUpdateTime;
     private static final int REQUEST_CHECK_SETTINGS = 100;
+    private static final String TAG = "MainActivity";
 
 
     @Override
@@ -76,7 +77,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void init() {
 
-        sendDriverStatus();
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         mSettingsClient = LocationServices.getSettingsClient(this);
 
@@ -90,10 +90,12 @@ public class MainActivity extends AppCompatActivity {
                 longitude = mCurrentLocation.getLongitude();
                 latitude = mCurrentLocation.getLatitude();
                 Log.d("Location", "Longitude = " + longitude.toString() + ", Latitude = " + latitude.toString());
-                Toast.makeText(MainActivity.this, "{" + longitude.toString() + "," + latitude.toString() + "}", Toast.LENGTH_SHORT).show();
+            //    Toast.makeText(MainActivity.this, "{" + longitude.toString() + "," + latitude.toString() + "}", Toast.LENGTH_SHORT).show();
                 if(isOnline) {
                     startBackgroundService();
                 }
+                else
+                    stopBackgroundService();
             }
         };
 
@@ -217,11 +219,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void startBackgroundService() {
+        Log.d(TAG,"Starting Background Service");
         Intent intent = new Intent(getApplicationContext() , RequestCount.class);
+        intent.putExtra("status","start");
         startService(intent);
     }
-
-    public void sendDriverStatus() {
-        ;
+    public void stopBackgroundService() {
+        Intent intent = new Intent(getApplicationContext() , RequestCount.class);
+        intent.putExtra("status","stop");
+        startService(intent);
     }
 }
