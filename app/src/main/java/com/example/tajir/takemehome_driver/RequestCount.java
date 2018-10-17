@@ -6,6 +6,9 @@ import android.app.Service;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
@@ -69,7 +72,7 @@ public class RequestCount extends Service {
         Intent intent = new Intent(this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
-
+        Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
         NotificationCompat.Builder notification = new NotificationCompat.Builder(this,"default")
                 .setTimeoutAfter(900000)
@@ -78,7 +81,10 @@ public class RequestCount extends Service {
                 .setContentTitle(getResources().getString(R.string.app_name))
                 .setContentText(getResources().getString(R.string.notificationText))
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setContentIntent(pendingIntent);
+                .setContentIntent(pendingIntent)
+                .setVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 })
+                .setLights(Color.RED , 3000 , 3000)
+                .setSound(alarmSound);
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
         notificationManager.notify(1,notification.build());
 

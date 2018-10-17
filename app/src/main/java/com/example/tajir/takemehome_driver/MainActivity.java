@@ -63,7 +63,9 @@ public class MainActivity extends AppCompatActivity {
     private String mLastUpdateTime;
     private static final int REQUEST_CHECK_SETTINGS = 100;
     private static final String TAG = "MainActivity";
-
+    public Integer count = 0;
+    public Double cuet_longitude , cuet_latitude;
+    public Double MAX_DISTANCE = 2.0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,6 +93,20 @@ public class MainActivity extends AppCompatActivity {
                 latitude = mCurrentLocation.getLatitude();
                 Log.d("Location", "Longitude = " + longitude.toString() + ", Latitude = " + latitude.toString());
             //    Toast.makeText(MainActivity.this, "{" + longitude.toString() + "," + latitude.toString() + "}", Toast.LENGTH_SHORT).show();
+                if(!inRadius()) {
+                    Log.d("Location", "Longitude = " + longitude.toString() + ", Latitude = " + latitude.toString());
+                    Log.d("Status","Not in the active region"+" "+count.toString());
+                    mRequestingLocationUpdates = false;
+                    if(count == 4) {
+                        stopLocationUpdates();
+                        stopBackgroundService();
+                        isOnline = false;
+                        mRequestingLocationUpdates = false;
+                        count = 0;
+                    }
+                    count++;
+                }
+
                 if(isOnline) {
                     startBackgroundService();
                 }
@@ -228,5 +244,29 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(getApplicationContext() , RequestCount.class);
         intent.putExtra("status","stop");
         startService(intent);
+    }
+
+    public Double deg2rad(Double deg) {
+        return deg * (Math.PI / 180);
+    }
+
+    boolean inRadius() {
+        cuet_latitude = 22.459892;
+        cuet_longitude = 91.970996;
+
+        Double R = 6371.0;
+        Double dLat = deg2rad(cuet_latitude - latitude);
+        Double dLon = deg2rad(cuet_longitude - longitude);
+        Double a,dist,c;
+        a = Math.sin(dLat/2) * Math.sin(dLat/2)
+                + Math.cos(deg2rad(latitude)) * Math.cos(deg2rad(cuet_latitude))
+                * Math.sin(dLon/2) * Math.sin(dLon/2);
+        c = 2 * Math.atan2(Math.sqrt(a) , Math.sqrt(1-a));
+        dist = R * c;
+        Log.d("Distance from CUET", dist.toString()+" km");
+        if(dist > MAX_DISTANCE)
+            return false;
+
+        return true;
     }
 }
