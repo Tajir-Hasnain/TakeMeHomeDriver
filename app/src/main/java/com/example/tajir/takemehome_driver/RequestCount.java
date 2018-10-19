@@ -27,6 +27,9 @@ import org.json.JSONObject;
 
 public class RequestCount extends Service {
 
+    String status;
+    String id;
+    Integer count = 0;
     public RequestCount() {
     }
 
@@ -54,21 +57,104 @@ public class RequestCount extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d("Status","Reached RequestCount class");
+        id = intent.getStringExtra("id");
+        String s = intent.getStringExtra("loopCount");
+        count = Integer.valueOf(s);
         if(intent.getStringExtra("status").equals("start")) {
             sendDriverStatus();
             Log.d("Status","Background Service started");
             if (getReqCount() >= 15)
                 pushNotification();
         }
-        else if(intent.getStringExtra("status").equals("stop"))
-            onDestroy();
+        else if(intent.getStringExtra("status").equals("stop")) {
+            status = "0";
+            delDriverStatus();
+        }
 
         return START_STICKY;
     }
 
     public void sendDriverStatus() {
-        ;
+        Log.d("POST Count",count.toString());
+        if(count == 0 || count == 120) {
+            //JSON POST
+            RequestQueue queue = Volley.newRequestQueue(this);
+
+            String url = "http://6105b92d.ngrok.io/adddriverrequest";
+            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+                    Request.Method.POST, url, null, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    Log.d("POST method", "Success");
+
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+
+                }
+            }) {
+                @Override
+                public byte[] getBody() {
+                    JSONObject json = new JSONObject();
+                    try {
+                        json.put("id", id);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    if (json != null) {
+                        Log.d("POST method JSON object", json.toString());
+                        return json.toString().getBytes();
+                    }
+                    return null;
+                }
+            };
+            queue.add(jsonObjectRequest);
+        }
+
     }
+
+    public void delDriverStatus() {
+        Log.d("DELETE Count",count.toString());
+        if(count == 0) {
+            //JSON POST
+            RequestQueue queue = Volley.newRequestQueue(this);
+
+            String url = "http://6105b92d.ngrok.io/deldriverrequest";
+            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+                    Request.Method.POST, url, null, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    Log.d("DELETE method", "Success");
+                    onDestroy();
+
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+
+                }
+            }) {
+                @Override
+                public byte[] getBody() {
+                    JSONObject json = new JSONObject();
+                    try {
+                        json.put("id", id);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    if (json != null) {
+                        Log.d("DELETE method object", json.toString());
+                        return json.toString().getBytes();
+                    }
+                    return null;
+                }
+            };
+            queue.add(jsonObjectRequest);
+        }
+
+    }
+
     String reqCount = "0";
     public Integer getReqCount() {
 

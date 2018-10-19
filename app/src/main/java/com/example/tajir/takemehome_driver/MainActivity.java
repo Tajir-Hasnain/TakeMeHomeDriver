@@ -77,6 +77,8 @@ public class MainActivity extends AppCompatActivity {
     public Double cuet_longitude , cuet_latitude;
     public Double MAX_DISTANCE = 2.0;
     private String id;
+    public Integer loopCount = 0;
+    public boolean isFirstTime = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,12 +110,12 @@ public class MainActivity extends AppCompatActivity {
                 longitude = mCurrentLocation.getLongitude();
                 latitude = mCurrentLocation.getLatitude();
                 Log.d("Location", "Longitude = " + longitude.toString() + ", Latitude = " + latitude.toString());
-            //    Toast.makeText(MainActivity.this, "{" + longitude.toString() + "," + latitude.toString() + "}", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "{" + longitude.toString() + "," + latitude.toString() + "}", Toast.LENGTH_SHORT).show();
                 if(!inRadius()) {
                     Log.d("Location", "Longitude = " + longitude.toString() + ", Latitude = " + latitude.toString());
                     Log.d("Status","Not in the active region"+" "+count.toString());
                     mRequestingLocationUpdates = false;
-                    if(count == 4) {
+                    if(count == 12) {
                         stopLocationUpdates();
                         stopBackgroundService();
                         isOnline = false;
@@ -205,6 +207,10 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(getApplicationContext(), "Location updates stopped!", Toast.LENGTH_SHORT).show();
                     }
                 });
+        Button button = findViewById(R.id.go_online);
+        button.setEnabled(true);
+        button = findViewById(R.id.go_offline);
+        button.setEnabled(false);
     }
     private void openSettings() {
         Intent intent = new Intent();
@@ -227,6 +233,10 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onPermissionGranted(PermissionGrantedResponse response) {
                         mRequestingLocationUpdates = true;
+                        Button button = findViewById(R.id.go_online);
+                        button.setEnabled(false);
+                        button = findViewById(R.id.go_offline);
+                        button.setEnabled(true);
                         requestLocationUpdates();
                     }
                     @Override
@@ -240,6 +250,11 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
                         token.continuePermissionRequest();
+                        Button button = findViewById(R.id.go_online);
+                        button.setEnabled(false);
+                        button = findViewById(R.id.go_offline);
+                        button.setEnabled(true);
+                        requestLocationUpdates();
                     }
                 }).check();
 
@@ -257,11 +272,17 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG,"Starting Background Service");
         Intent intent = new Intent(getApplicationContext() , RequestCount.class);
         intent.putExtra("status","start");
+        intent.putExtra("id" , id);
+        intent.putExtra("loopCount",loopCount.toString());
+        loopCount++;
         startService(intent);
     }
     public void stopBackgroundService() {
         Intent intent = new Intent(getApplicationContext() , RequestCount.class);
         intent.putExtra("status","stop");
+        intent.putExtra("id",id);
+        loopCount = 0;
+        intent.putExtra("loopCount", loopCount.toString());
         startService(intent);
     }
 
